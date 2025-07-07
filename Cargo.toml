@@ -1,0 +1,23 @@
+[package]
+name = "bnbt"
+version = "0.0.1"
+authors = ["NguyenDuck"]
+edition = "2024"
+description = "A Rust crate for handling Named Binary Tag (NBT) data"
+license = "AGPL-3.0-only"
+repository = "https://github.com/NguyenDuck/bnbt"
+keywords = ["nbt", "minecraft", "bedrock", "blocktopograph"]
+
+[dependencies]
+bytemuck = "1"
+byteorder = "1"
+bytes = "1"
+flate2 = { version = "1", features = ["zlib"] }
+paste = "1"
+
+[dev-dependencies]
+tempfile = "3"
+serde_json = "1"
+
+[badges]
+maintenance = { status = "actively-developed" }
