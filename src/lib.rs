@@ -15,10 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 ////////////////////////////////////////////////////////////////////////
-mod macros;
-pub mod serializer;
-pub mod tag;
-pub mod value;
+pub mod macros;
+mod serializer;
+mod tag;
+mod value;
 
-use crate::tag::NBTTag;
-use crate::value::NBTTagValue;
+pub use crate::serializer::NBTSerializer;
+pub use crate::tag::NBTTag;
+pub use crate::value::NBTTagValue;

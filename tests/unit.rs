@@ -17,7 +17,7 @@
 ////////////////////////////////////////////////////////////////////////
 #[cfg(test)]
 mod tests {
-    use bnbt::{tag::NBTTag, value::NBTTagValue};
+    use bnbt::{NBTTag, NBTTagValue};
 
     use std::collections::HashMap;
 

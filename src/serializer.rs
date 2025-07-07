@@ -17,7 +17,7 @@
 ////////////////////////////////////////////////////////////////////////
 use crate::tag::NBTTag;
 use bytes::Bytes;
-use flate2::{read::GzDecoder, write::GzEncoder, Compression};
+use flate2::{Compression, read::GzDecoder, write::GzEncoder};
 use std::io::{Read, Write};
 
 pub struct NBTSerializer;

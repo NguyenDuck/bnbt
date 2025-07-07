@@ -17,13 +17,8 @@
 ////////////////////////////////////////////////////////////////////////
 #[macro_export]
 macro_rules! nbt {
-    ($name:literal, $value:tt) => {{
-        $crate::NBTTag::new($name.to_string(), nbt_inner!($value))
-    }};
-
-    ($name:expr, $value:tt) => {{
-        $crate::NBTTag::new($name, nbt_inner!($value))
-    }};
+    ($name:literal, $value:tt) => {{ $crate::NBTTag::new($name.to_string(), nbt_inner!($value)) }};
+    ($name:expr, $value:tt) => {{ $crate::NBTTag::new($name, nbt_inner!($value)) }};
 }
 
 #[macro_export]

@@ -19,7 +19,7 @@
 mod tests {
     use std::collections::HashMap;
 
-    use bnbt::{serializer::NBTSerializer, tag::NBTTag, value::NBTTagValue};
+    use bnbt::{NBTSerializer, NBTTag, NBTTagValue};
     use tempfile::NamedTempFile;
 
     #[test]

@@ -19,6 +19,3 @@ mod macros;
 pub mod serializer;
 pub mod tag;
 pub mod value;
-
-use crate::tag::NBTTag;
-use crate::value::NBTTagValue;
