@@ -26,5 +26,5 @@ fn main() {
     ]);
 
     let compound_tag = nbt!("test", {});
-    }
+}
 ```
