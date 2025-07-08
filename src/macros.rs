@@ -16,38 +16,73 @@
  */
 ////////////////////////////////////////////////////////////////////////
 #[macro_export]
-macro_rules! nbt {
-    ($name:literal, $value:tt) => {{ $crate::NBTTag::new($name.to_string(), nbt_inner!($value)) }};
-    ($name:expr, $value:tt) => {{ $crate::NBTTag::new($name, nbt_inner!($value)) }};
+#[doc(hidden)]
+macro_rules! nbt_spec_array_inner {
+    (L, $($value:expr),* $(,)?) => {
+        $crate::nbt_spec_array_inner!(Long, $($value),*)
+    };
+
+    (Long, $($value:expr),* $(,)?) => {
+        $crate::NBTTagValue::LongArray(vec![$($value),*])
+    };
+
+    (I, $($value:expr),* $(,)?) => {
+        $crate::nbt_spec_array_inner!(Int, $($value),*)
+    };
+
+    (Int, $($value:expr),* $(,)?) => {
+        $crate::NBTTagValue::IntArray(vec![$($value),*])
+    };
+
+    (B, $($value:expr),* $(,)?) => {
+        $crate::nbt_spec_array_inner!(Byte, $($value),*)
+    };
+
+    (Byte, $($value:expr),* $(,)?) => {
+        $crate::NBTTagValue::ByteArray(vec![$($value),*])
+    };
 }
 
 #[macro_export]
+#[doc(hidden)]
 macro_rules! nbt_inner {
     ({ $($key:tt : $value:tt),* $(,)? }) => {{
         use std::collections::HashMap;
 
         let mut map: HashMap<String, $crate::NBTTagValue> = HashMap::new();
 
-        $(map.insert($key.into(), nbt_inner!(@value $value)))*;
+        $(map.insert($key.into(), $crate::nbt_inner!(@value $value)))*;
 
         $crate::NBTTagValue::Compound(map)
     }};
 
-    ([$type:ident; $($value:tt),* $(,)?]) => {
-        match stringify!($type) {
-            "L" | "Long" => $crate::NBTTagValue::LongArray(vec![$($value.into()),*]),
-            "I" | "Int" => $crate::NBTTagValue::IntArray(vec![$($value.into()),*]),
-            "B" | "Byte" => $crate::NBTTagValue::ByteArray(vec![$($value.into()),*]),
-            _ => panic!("Unknown type: {}", stringify!($type)),
-        }
+    ([$type:ident, $($value:expr),* $(,)?]) => {
+        $crate::nbt_spec_array_inner!($type, $($value),*)
     };
 
-    ([$($t:tt),* $(,)?]) => {
-        $crate::NBTTagValue::List(vec![$(nbt_inner!($t).into()),*])
+    ([$type:ty; $($value:expr),* $(,)?]) => {
+        $crate::NBTTagValue::List(vec![
+            $({
+                let val: $type = $value;
+                $crate::nbt_inner!(@value val)
+            }),*
+        ])
     };
 
-    ($value:tt) => {
-            nbt_inner!(@value $value)
+    ([$($value:tt),* $(,)?]) => {
+        $crate::NBTTagValue::List(vec![
+            $(
+                $crate::nbt_inner!($value)
+            ),*
+        ])
+    };
+
+    ($value:ident) => {
+        $crate::nbt_inner!(@value $value)
+    };
+
+    ($value:literal) => {
+        $crate::nbt_inner!(@value $value)
     };
 
     (@value $ident:ident) => {
@@ -57,8 +92,35 @@ macro_rules! nbt_inner {
         $crate::NBTTagValue::from($lit)
     };
     (@value $other:tt) => {
-        $crate::NBTTagValue::from(nbt_inner!($other))
+        $crate::NBTTagValue::from($crate::nbt_inner!($other))
     };
+}
+
+/// \/\/Examples
+/// ```rust
+/// use bnbt::nbt;
+///
+/// let string_tag = nbt!("test", "test");
+/// let byte_tag = nbt!("test", 1i8);
+/// let int_tag = nbt!("test", 2);
+///
+/// let byte_array_tag = nbt!("test", [B, 1, 2, 3]);
+/// let int_array_tag = nbt!("test", [I, 1, 2, 3]);
+/// let long_array_tag = nbt!("test", [L, 1, 2, 3]);
+///
+/// let empty_list_tag = nbt!("test", []);
+/// let list_of_byte_tag = nbt!("test", [i8; 1, 2]);
+/// let list_of_compound_tag = nbt!("test", [
+///     {"byte": 1i8},
+///     {"int": 2},
+/// ]);
+///
+/// let compound_tag = nbt!("test", {});
+/// ```
+#[macro_export]
+macro_rules! nbt {
+    ($name:literal, $value:tt) => {{ $crate::NBTTag::new($name.to_string(), $crate::nbt_inner!($value)) }};
+    ($name:expr, $value:tt) => {{ $crate::NBTTag::new($name, $crate::nbt_inner!($value)) }};
 }
 
 #[test]
@@ -106,9 +168,7 @@ fn nbt_macro_simple_test() {
         assert_eq!(double_tag.value.as_double().unwrap(), &6f64);
     }
     {
-        let byte_array_tag = nbt!("test", [B; 1, 2, 3]);
-
-        println!("{:?}", byte_array_tag);
+        let byte_array_tag = nbt!("test", [B, 1, 2, 3]);
 
         assert_eq!(byte_array_tag.get_type_id(), 7);
         assert_eq!(byte_array_tag.name, "test");
@@ -122,7 +182,7 @@ fn nbt_macro_simple_test() {
         assert_eq!(string_tag.value.as_string().unwrap(), "test");
     }
     {
-        let list_tag = nbt!("test", [1i8, 2i8]);
+        let list_tag = nbt!("test", [i8; 1, 2,]);
 
         assert_eq!(list_tag.get_type_id(), 9);
         assert_eq!(list_tag.name, "test");
@@ -149,14 +209,14 @@ fn nbt_macro_simple_test() {
         );
     }
     {
-        let int_array_tag = nbt!("test", [I; 1, 2, 3]);
+        let int_array_tag = nbt!("test", [I, 1, 2, 3]);
 
         assert_eq!(int_array_tag.get_type_id(), 11);
         assert_eq!(int_array_tag.name, "test");
         assert_eq!(int_array_tag.value.as_int_array().unwrap(), &[1, 2, 3]);
     }
     {
-        let long_array_tag = nbt!("test", [L; 1, 2, 3]);
+        let long_array_tag = nbt!("test", [L, 1, 2, 3]);
 
         assert_eq!(long_array_tag.get_type_id(), 12);
         assert_eq!(long_array_tag.name, "test");

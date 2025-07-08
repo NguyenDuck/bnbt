@@ -17,13 +17,13 @@
 ////////////////////////////////////////////////////////////////////////
 #[cfg(test)]
 mod tests {
-    use bnbt::{NBTTag, NBTTagValue};
+    use bnbt::{NBTTag, NBTTagValue, nbt};
 
     use std::collections::HashMap;
 
     #[test]
     fn test_simple_tag() {
-        let tag = NBTTag::new("test".to_string(), NBTTagValue::Byte(8));
+        let tag = nbt!("test", 8i8);
 
         assert!(tag.value.is_byte());
         assert_eq!(tag.name, "test");
@@ -32,10 +32,8 @@ mod tests {
 
     #[test]
     fn test_list_tag() {
-        let tag = NBTTag::new(
-            "test".to_string(),
-            NBTTagValue::List(vec![NBTTagValue::Byte(8), NBTTagValue::Byte(16)]),
-        );
+        let tag = nbt!("test", [i8; 8, 16]);
+
         assert!(tag.value.is_list());
         assert_eq!(tag.name, "test");
         assert_eq!(tag.value.as_list().unwrap().len(), 2);
@@ -45,28 +43,22 @@ mod tests {
 
     #[test]
     fn test_compound_tag() {
-        let mut map = HashMap::new();
-
-        let list_value: Vec<NBTTagValue> = vec![8i8.into(), 16i8.into()];
-
-        let list_tag = NBTTagValue::List(list_value);
-
-        map.insert("list_tag".to_owned(), list_tag.clone());
-
-        let tag = NBTTag::new("test".to_string(), NBTTagValue::Compound(map));
+        let tag = nbt!("test", {
+            "list_tag": [i8; 8, 16],
+        });
 
         assert!(tag.value.is_compound());
         assert_eq!(tag.name, "test");
         assert_eq!(tag.value.as_compound().unwrap().len(), 1);
         assert_eq!(
             *tag.value.as_compound().unwrap().get("list_tag").unwrap(),
-            list_tag
+            nbt!("", [i8; 8, 16]).value
         );
     }
 
     #[test]
     fn test_compound_index_operator() {
-        let mut tag = NBTTag::new_unnamed(NBTTagValue::Compound(HashMap::new()));
+        let mut tag = nbt!("", {});
 
         let compound = tag.value.as_compound_mut().unwrap();
 

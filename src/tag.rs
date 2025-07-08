@@ -82,6 +82,11 @@ impl NBTTag {
             NBTTagValue::List(items) => {
                 let type_id = items.first().map_or(0, |item| item.get_type_id());
                 bytes.put_u8(type_id);
+
+                if type_id == 0 {
+                    return;
+                }
+
                 bytes.put_u32_le(items.len() as u32);
 
                 for item in items {
@@ -152,6 +157,11 @@ impl NBTTag {
             }
             9 => {
                 let list_type = bytes.get_u8();
+
+                if list_type == 0 {
+                    return NBTTagValue::List([].into());
+                }
+
                 let len = bytes.get_u32_le() as usize;
                 let mut list = Vec::with_capacity(len);
 
