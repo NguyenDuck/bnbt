@@ -121,14 +121,14 @@ impl NBTTag {
         }
     }
 
-    pub fn from_bytes(mut bytes: Bytes) -> Self {
+    pub fn from_bytes(bytes: &mut Bytes) -> Self {
         let tag_type = bytes.get_u8();
 
         let name_len = bytes.get_u16_le() as usize;
         let name = String::from_utf8_lossy(&bytes[..name_len]).into();
         bytes.advance(name_len);
 
-        let value = Self::from_bytes_payload(tag_type, &mut bytes);
+        let value = Self::from_bytes_payload(tag_type, bytes);
 
         Self { name, value }
     }

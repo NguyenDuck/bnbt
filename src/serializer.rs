@@ -37,7 +37,7 @@ impl NBTSerializer {
         let mut buffer = Vec::new();
         decoder.read_to_end(&mut buffer)?;
 
-        let tag = NBTTag::from_bytes(Bytes::from(buffer));
+        let tag = NBTTag::from_bytes(&mut Bytes::from(buffer));
 
         Ok(tag)
     }

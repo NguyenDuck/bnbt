@@ -1,6 +1,6 @@
 [package]
 name = "bnbt"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["NguyenDuck"]
 edition = "2024"
 description = "A Rust crate for handling Named Binary Tag (NBT) data"
