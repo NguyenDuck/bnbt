@@ -217,17 +217,13 @@ impl std::ops::Index<&str> for NBTTag {
     type Output = NBTTagValue;
 
     fn index(&self, index: &str) -> &Self::Output {
-        self.value.as_compound().unwrap().get(index).unwrap()
+        &self.value[index]
     }
 }
 
 impl std::ops::IndexMut<&str> for NBTTag {
     fn index_mut(&mut self, index: &str) -> &mut Self::Output {
-        self.value
-            .as_compound_mut()
-            .unwrap()
-            .get_mut(index)
-            .unwrap()
+        &mut self.value[index]
     }
 }
 
@@ -235,12 +231,12 @@ impl std::ops::Index<usize> for NBTTag {
     type Output = NBTTagValue;
 
     fn index(&self, index: usize) -> &Self::Output {
-        self.value.as_list().unwrap().get(index).unwrap()
+        &self.value[index]
     }
 }
 
 impl std::ops::IndexMut<usize> for NBTTag {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        self.value.as_list_mut().unwrap().get_mut(index).unwrap()
+        &mut self.value[index]
     }
 }

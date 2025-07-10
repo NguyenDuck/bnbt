@@ -169,3 +169,31 @@ impl From<&str> for NBTTagValue {
         Self::String(value.to_string())
     }
 }
+
+impl std::ops::Index<&str> for NBTTagValue {
+    type Output = NBTTagValue;
+
+    fn index(&self, index: &str) -> &Self::Output {
+        self.as_compound().unwrap().get(index).unwrap()
+    }
+}
+
+impl std::ops::IndexMut<&str> for NBTTagValue {
+    fn index_mut(&mut self, index: &str) -> &mut Self::Output {
+        self.as_compound_mut().unwrap().get_mut(index).unwrap()
+    }
+}
+
+impl std::ops::Index<usize> for NBTTagValue {
+    type Output = NBTTagValue;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        self.as_list().unwrap().get(index).unwrap()
+    }
+}
+
+impl std::ops::IndexMut<usize> for NBTTagValue {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        self.as_list_mut().unwrap().get_mut(index).unwrap()
+    }
+}

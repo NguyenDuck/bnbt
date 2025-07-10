@@ -17,90 +17,169 @@
 ////////////////////////////////////////////////////////////////////////
 #[cfg(test)]
 mod tests {
-    use bnbt::{NBTTag, NBTTagValue, nbt};
 
-    use std::collections::HashMap;
+    mod simple {
 
-    #[test]
-    fn test_simple_tag() {
-        let tag = nbt!("test", 8i8);
+        mod byte {
+            use bnbt::{NBTTag, NBTTagValue, nbt};
 
-        assert!(tag.value.is_byte());
-        assert_eq!(tag.name, "test");
-        assert_eq!(tag.value.as_byte().unwrap(), &8);
-    }
+            #[test]
+            fn simple_tag() {
+                let tag = NBTTag::new("test".into(), NBTTagValue::Byte(8));
 
-    #[test]
-    fn test_list_tag() {
-        let tag = nbt!("test", [i8; 8, 16]);
+                assert!(tag.value.is_byte());
+                assert_eq!(tag.name, "test");
+                assert_eq!(tag.value.as_byte().unwrap(), &8);
+            }
 
-        assert!(tag.value.is_list());
-        assert_eq!(tag.name, "test");
-        assert_eq!(tag.value.as_list().unwrap().len(), 2);
-        assert_eq!(tag.value.as_list().unwrap()[0].as_byte().unwrap(), &8);
-        assert_eq!(tag.value.as_list().unwrap()[1].as_byte().unwrap(), &16);
-    }
+            #[test]
+            fn value_from_variable_using_macro() {
+                let value = 8i8;
+                let tag = nbt!("test", value);
 
-    #[test]
-    fn test_compound_tag() {
-        let tag = nbt!("test", {
-            "list_tag": [i8; 8, 16],
-        });
+                assert!(tag.value.is_byte());
+                assert_eq!(tag.name, "test");
+                assert_eq!(tag.value.as_byte().unwrap(), &value);
+            }
 
-        assert!(tag.value.is_compound());
-        assert_eq!(tag.name, "test");
-        assert_eq!(tag.value.as_compound().unwrap().len(), 1);
-        assert_eq!(
-            *tag.value.as_compound().unwrap().get("list_tag").unwrap(),
-            nbt!("", [i8; 8, 16]).value
-        );
-    }
+            #[test]
+            fn value_from_literal_using_macro() {
+                let tag = nbt!("test", 8i8);
 
-    #[test]
-    fn test_compound_index_operator() {
-        let mut tag = nbt!("", {});
+                assert!(tag.value.is_byte());
+                assert_eq!(tag.name, "test");
+                assert_eq!(tag.value.as_byte().unwrap(), &8);
+            }
+        }
 
-        let compound = tag.value.as_compound_mut().unwrap();
+        mod array_type {
+            use bnbt::{NBTTag, NBTTagValue, nbt};
 
-        compound.insert("test".into(), 1i8.into());
+            #[test]
+            fn byte_array_tag() {
+                let tag = NBTTag::new_unnamed(NBTTagValue::ByteArray(vec![1, 2, 3]));
 
-        assert_eq!(tag["test"].as_byte().unwrap(), &1);
-    }
+                assert!(tag.value.is_byte_array());
+                assert_eq!(tag.value.as_byte_array().unwrap(), &[1, 2, 3]);
+            }
 
-    #[test]
-    fn test_compound_index_mut_operator() {
-        let mut tag = NBTTag::new_unnamed(NBTTagValue::Compound(HashMap::new()));
+            #[test]
+            fn int_array_tag() {
+                let tag = NBTTag::new_unnamed(NBTTagValue::IntArray(vec![1, 2, 3]));
 
-        let compound = tag.value.as_compound_mut().unwrap();
+                assert!(tag.value.is_int_array());
+                assert_eq!(tag.value.as_int_array().unwrap(), &[1, 2, 3]);
+            }
 
-        compound.insert("test".into(), 1i8.into());
+            #[test]
+            fn long_array_tag() {
+                let tag = NBTTag::new_unnamed(NBTTagValue::LongArray(vec![1, 2, 3]));
 
-        *compound.get_mut("test").unwrap() = 2i8.into();
+                assert!(tag.value.is_long_array());
+                assert_eq!(tag.value.as_long_array().unwrap(), &[1, 2, 3]);
+            }
 
-        assert_eq!(tag["test"].as_byte().unwrap(), &2);
-    }
+            #[test]
+            fn value_from_literal_using_macro() {
+                let tag = nbt!("test", [B, 1, 2, 3]);
 
-    #[test]
-    fn test_list_index_operator() {
-        let mut tag = NBTTag::new_unnamed(NBTTagValue::List(Vec::new()));
+                assert!(tag.value.is_byte_array());
+                assert_eq!(tag.value.as_byte_array().unwrap(), &[1, 2, 3]);
+            }
+        }
 
-        let list = tag.value.as_list_mut().unwrap();
+        mod list {
+            use bnbt::{NBTTag, NBTTagValue, nbt};
 
-        list.push(1i8.into());
+            #[test]
+            fn simple_tag() {
+                let tag = NBTTag::new_unnamed(NBTTagValue::List(vec![
+                    NBTTagValue::Byte(8),
+                    NBTTagValue::Byte(16),
+                ]));
 
-        assert_eq!(tag[0].as_byte().unwrap(), &1);
-    }
+                assert!(tag.value.is_list());
+                assert_eq!(tag.value.as_list().unwrap().len(), 2);
+                assert_eq!(tag.value.as_list().unwrap()[0].as_byte().unwrap(), &8);
+                assert_eq!(tag.value.as_list().unwrap()[1].as_byte().unwrap(), &16);
+            }
 
-    #[test]
-    fn test_list_index_mut_operator() {
-        let mut tag = NBTTag::new_unnamed(NBTTagValue::List(Vec::new()));
+            #[test]
+            fn value_from_literal_using_macro() {
+                let tag = nbt!("test", [i8; 8, 16]);
 
-        let list = tag.value.as_list_mut().unwrap();
+                assert!(tag.value.is_list());
+                assert_eq!(tag.value.as_list().unwrap().len(), 2);
+                assert_eq!(tag.value.as_list().unwrap()[0].as_byte().unwrap(), &8);
+                assert_eq!(tag.value.as_list().unwrap()[1].as_byte().unwrap(), &16);
+            }
 
-        list.push(1i8.into());
+            #[test]
+            fn access_nested_list_tag_with_index() {
+                let tag = nbt!("", [[i8; 8, 16], [i8; 16, 32]]);
 
-        *list.get_mut(0).unwrap() = 2i8.into();
+                assert!(tag.value.is_list());
+                assert_eq!(tag.value.as_list().unwrap().len(), 2);
+                assert_eq!(tag[0].as_list().unwrap().len(), 2);
+                assert_eq!(tag[1].as_list().unwrap().len(), 2);
+                assert_eq!(tag[0][0].as_byte().unwrap(), &8);
+                assert_eq!(tag[0][1].as_byte().unwrap(), &16);
+                assert_eq!(tag[1][0].as_byte().unwrap(), &16);
+                assert_eq!(tag[1][1].as_byte().unwrap(), &32);
+            }
+        }
 
-        assert_eq!(tag[0].as_byte().unwrap(), &2);
+        mod compound {
+            use std::collections::HashMap;
+
+            use bnbt::{NBTTag, NBTTagValue, nbt};
+
+            #[test]
+            fn simple_tag() {
+                let mut tag = NBTTag::new_unnamed(NBTTagValue::Compound(HashMap::new()));
+
+                let compound = tag.value.as_compound_mut().unwrap();
+
+                compound.insert("test".into(), 1i8.into());
+
+                assert_eq!(tag["test"].as_byte().unwrap(), &1);
+            }
+
+            #[test]
+            fn value_from_literal_using_macro() {
+                let tag = nbt!("test", {});
+
+                assert!(tag.value.is_compound());
+                assert_eq!(tag.name, "test");
+                assert_eq!(tag.value.as_compound().unwrap().len(), 0);
+            }
+
+            #[test]
+            fn empty_nested_compound_tag() {
+                let tag = nbt!("test", {
+                    "test": {},
+                });
+
+                assert!(tag.value.is_compound());
+                assert_eq!(tag.name, "test");
+                assert_eq!(tag.value.as_compound().unwrap().len(), 1);
+                assert_eq!(
+                    *tag.value.as_compound().unwrap().get("test").unwrap(),
+                    nbt!("", {}).value
+                );
+            }
+
+            #[test]
+            fn access_nested_compound_tag_with_index() {
+                let tag = nbt!("", {
+                    "test": {},
+                });
+
+                assert!(tag.value.is_compound());
+                assert_eq!(tag.name, "");
+                assert_eq!(tag.value.as_compound().unwrap().len(), 1);
+                assert_eq!(tag["test"].as_compound().unwrap().len(), 0);
+            }
+        }
     }
 }
